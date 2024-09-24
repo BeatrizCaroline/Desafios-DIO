@@ -48,7 +48,7 @@ while True:
         print("__________________________")
 
     elif Opcoes == 5:
-        print("Saindo do programa...")
+        print("Saindo...")
         break
 
     else:
