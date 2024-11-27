@@ -21,16 +21,16 @@ class PessoaFisica(Cliente):
         self.cpf = cpf
 
 class Conta:
-    def __init__(self, numero, cliente):
+    def __init__(self, numero, usuario):
         self._saldo = 0
         self._numero = numero
         self._agencia = "0001"
-        self._cliente = cliente
+        self._usuario = usuario
         self._historico = Historico()
 
     @classmethod
-    def nova_conta(cls, cliente, numero):
-        return cls(numero, cliente)
+    def nova_conta(cls, usuario, numero):
+        return cls(numero, usuario)
     
     @property
     def saldo(self):
@@ -45,8 +45,8 @@ class Conta:
         return self._agencia
     
     @property
-    def cliente(self):
-        return self._cliente
+    def usuario(self):
+        return self._usuario
     
     @property
     def historico(self):
@@ -68,7 +68,7 @@ class Conta:
             print("\nXXX Operação falhou! O valor informado é inválido. XXX")
             return False
         
-    def investimento(self, valor):
+    def investir(self, valor):
         saldo = self.saldo
         excedeu_saldo = valor > saldo
 
@@ -85,28 +85,29 @@ class Conta:
             return False
     
         
-    def depoistar(self, valor):
+    def depositar(self, valor):
         if valor > 0:
-                self._saldo += valor
-                print("\n>>> Depósito realizado com sucesso! <<<")
+            self._saldo += valor
+            print("\n>>> Depósito realizado com sucesso! <<<")
         else:
-                print("\nXXX Operação falhou! O valor informado é inválido. XXX")
-                return False
+            print("\nXXX Operação falhou! O valor informado é inválido. XXX")
+            return False
+
         return True
         
 class ContaCorrente(Conta):
-    def __init__(self, numero, cliente, limite=500, limite_saques=3):
-        super().__init__(numero, cliente)
-        self.limite = limite
-        self.limite_saques = limite_saques
+    def __init__(self, numero, usuario, limite=500, limite_saques=3):
+        super().__init__(numero, usuario)
+        self._limite = limite
+        self._limite_saques = limite_saques
 
     def sacar(self, valor):
         numero_saques = len(
             [transacao for transacao in self.historico.transacoes
-             if transacao["tipo"] == Saque.__nome__])
+             if transacao["tipo"] == Saque.__name__])
 
-        excedeu_limite = valor > self.limite
-        excedeu_saques = numero_saques >= self.limite_saques
+        excedeu_limite = valor > self._limite
+        excedeu_saques = numero_saques >= self._limite_saques
 
         if excedeu_limite:
             print("\nXXX Operação falhou! O valor do saque excedeu o limite XXX")
@@ -122,12 +123,12 @@ class ContaCorrente(Conta):
         return f"""\
             Agência:\t{self.agencia}
             C/C:\t\t{self.numero}
-            Titular:\t{self.cliente.nome}
+            Titular:\t{self.usuario.nome}
         """
 
 class Historico:
     def __init__(self):
-        self._trasacoes = []
+        self._transacoes = []
 
     @property
     def transacoes(self):
@@ -136,7 +137,7 @@ class Historico:
     def adicionar_transacao(self, transacao):
         self._transacoes.append(
             {
-                "tipo": transacao._class_._name_,
+                "tipo": transacao.__class__.__name__,
                 "valor": transacao.valor,
             }
         )        
@@ -174,7 +175,7 @@ class Investir(Transacao):
         return self._valor
     
     def registrar(self, conta):
-        sucesso_transacao = conta.sacar(self.valor)
+        sucesso_transacao = conta.investir(self.valor)
 
         if sucesso_transacao:
             conta.historico.adicionar_transacao(self)
@@ -195,7 +196,7 @@ class Deposito(Transacao):
             conta.historico.adicionar_transacao(self)
 
 def menu():
-    return int(input("___Informe uma opção:___ \n [1] Sacar \n [2] Depositar \n [3] Investir \n [4] Extrato \n [5] Novo usuário \n [6] Nova conta \n [7] Listar contas \n [8] Sair \nDigite... "))
+    return int(input("___Escolha uma das opções:___ \n [1] Sacar \n [2] Depositar \n [3] Investir \n [4] Extrato \n [5] Novo usuário \n [6] Nova conta \n [7] Listar contas \n [8] Sair \nDigite... "))
 
 def sacar(usuarios):
     cpf = input("Informe o CPF do cliente: ")
